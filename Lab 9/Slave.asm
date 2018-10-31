@@ -36,7 +36,6 @@ START
     CALL    CONFIG_RELOJ		; RELOJ INTERNO DE 500KHz
     CALL    CONFIG_IO
     CALL    CONFIG_TX_RX		; 10417hz
-    CALL    CONFIG_ADC			; canal 0, fosc/8, adc on, justificado a la izquierda, Vref interno (0-5V)
     BANKSEL PORTA
 ;***************************
    
