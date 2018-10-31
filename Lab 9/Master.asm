@@ -1,11 +1,10 @@
 ;*******************************************************************************
 ;                                                                              *
 ;    Filename:    Serial.asm
-;    Autor: José Eduardo Morales					
-;    Description: EJEMPLO de serial y ADC                                      *
-;   El código convierte un valor del adc y lo guarda en el puerto b. A la vez
-;   lo envía a través del TX. También recibe un dato y este lo muestra en el 
-;   puerto d. Para ver funcionar ambos se puede colocar un jumper entre rx y tx
+;    Autor: Jose Ignacio Ramírez Soto					
+;    Description: Codigo de Master para Lab9                                     *
+;   El código convierte un valor del adc y lo guarda en el puerto a. A la vez
+;   lo envía a través del TX.
 ;*******************************************************************************
 #include "p16f887.inc"
 
@@ -17,8 +16,6 @@
  __CONFIG _CONFIG2, _BOR4V_BOR40V & _WRT_OFF
 ;*******************************************************************************
    GPR_VAR        UDATA
-   W_TEMP         RES        1      ; w register for context saving (ACCESS)
-   STATUS_TEMP    RES        1      ; status used for context saving
    DELAY1	  RES	    1
    DELAY2	  RES	    1
 ;*******************************************************************************
@@ -28,9 +25,6 @@
 RES_VECT  CODE    0x0000            ; processor reset vector
     GOTO    START                   ; go to beginning of program
 
-;*******************************************************************************
-;ISR       CODE    0x0004           ; interrupt vector location
-;     RETFIE
 ;*******************************************************************************
 ; MAIN PROGRAM
 ;*******************************************************************************
@@ -57,16 +51,10 @@ CHECK_AD:
     GOTO    $-1
     BCF	    PIR1, ADIF			; borramos la bandera del adc
     MOVF    ADRESH, W
-    MOVWF   PORTB			; mueve adresh al puerto b
-    
-CHECK_RCIF:			    ; RECIBE EN RX y lo muestra en PORTD
-    BTFSS   PIR1, RCIF
-    GOTO    CHECK_TXIF
-    MOVF    RCREG, W
-    MOVWF   PORTD
+    MOVWF   PORTA			; mueve adresh al puerto a
     
 CHECK_TXIF: 
-    MOVFW   PORTB		    ; ENVÍA PORTB POR EL TX
+    MOVFW   PORTA		    ; ENVÍA PORTA POR EL TX
     MOVWF   TXREG
    
     BTFSS   PIR1, TXIF
@@ -80,14 +68,11 @@ CHECK_TXIF:
     BSF OSCCON, IRCF2
     BCF OSCCON, IRCF1
     BCF OSCCON, IRCF0		    ; FRECUECNIA DE 1MHz
-;    
-;    BCF OSCCON, OSTS		    ; UTILIZAREMOS RELOJ INTERNO
-;    BSF OSCCON, HTS		    ; ESTABLE
-;    BSF OSCCON, SCS		    ; SELECCIONAMOS RELOJ INTERNO COMO EL RELOJ DEL SISTEMA
+
     RETURN
  
  ;--------------------------------------------------------
-    CONFIG_TX_RX
+CONFIG_TX_RX
     BANKSEL TXSTA
     BCF	    TXSTA, SYNC		    ; ASINCRÓNO
     BSF	    TXSTA, BRGH		    ; LOW SPEED
@@ -126,12 +111,12 @@ CONFIG_IO
     CLRF    PORTE
     RETURN    
 ;-----------------------------------------------
-    CONFIG_ADC
+CONFIG_ADC
     BANKSEL PORTA
     BCF ADCON0, ADCS1
     BSF ADCON0, ADCS0		; FOSC/8 RELOJ TAD
     
-    BCF ADCON0, CHS3		; CH0
+    BSF ADCON0, CHS3		; CH8
     BCF ADCON0, CHS2
     BCF ADCON0, CHS1
     BCF ADCON0, CHS0	
@@ -143,9 +128,9 @@ CONFIG_IO
     BSF ADCON0, ADON		; ENCIENDO EL MÓDULO ADC
     
     BANKSEL TRISA
-    BSF	    TRISA, RA0		; RA0 COMO ENTRADA
-    BANKSEL ANSEL
-    BSF	    ANSEL, 0		; ANS0 COMO ENTRADA ANALÓGICA
+    BSF	    TRISB, RB2		; RB2 COMO ENTRADA
+    BANKSEL ANSELH
+    BSF	    ANSELH, 0		; ANS8 COMO ENTRADA ANALÓGICA
     
     RETURN
 ;-----------------------------------------------
