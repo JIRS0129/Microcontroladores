@@ -1,6 +1,6 @@
 ;*******************************************************************************
 ;                                                                              *
-;    Filename:    Serial.asm
+;    Filename:    Master.asm
 ;    Autor: Jose Ignacio Ramírez Soto					
 ;    Description: Codigo de Master para Lab9                                     *
 ;   El código convierte un valor del adc y lo guarda en el puerto a. A la vez
