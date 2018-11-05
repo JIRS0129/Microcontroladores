@@ -1,5 +1,7 @@
 #Python V3.5.2
 
+#Use arduino's TestingSketch for testing purpose
+
 import serial
 import tkinter as tk
 import time
@@ -16,10 +18,11 @@ data = serial.Serial(port, baudrate = 9600, timeout=1500)
 def refresh(x):
     result = None
     data.reset_input_buffer()
-    time.sleep(.5)
+    time.sleep(.1)
     while(result is None):
-        result = data.readline()
-    print(type(result))
+        result = data.readline(1)
+    result = ord(result)
+    print(result)
     return(result)
 
 class Mainframe(tk.Frame):
@@ -51,7 +54,7 @@ class Mainframe(tk.Frame):
 
     def send(self):
         data.write(bytes(self.spBox.get().encode()))
-        data.write(b'\n')
+        #data.write(b'\n')
 
 class leftFrame(tk.Frame):
     
@@ -63,7 +66,7 @@ class leftFrame(tk.Frame):
         self.Voltaje = tk.IntVar()
         tk.Label(self,textvariable = self.Voltaje, font=("Courier", 13)).place(x = 55, y = 70)
 
-        self.TimerInterval = 500
+        self.TimerInterval = 5
 
         self.Volt = 1
 
@@ -71,8 +74,9 @@ class leftFrame(tk.Frame):
 
     def refreshVoltaje(self):
         self.Volt = refresh(self.Volt)
+        self.Volt = round(((self.Volt * 5)/255),3)
         self.Voltaje.set(self.Volt)
-
+        
         self.after(self.TimerInterval,self.refreshVoltaje)
 
 class App(tk.Tk):
@@ -81,6 +85,7 @@ class App(tk.Tk):
                
         self.title('Miniproyecto de Microcontroladores')
         self.geometry('450x200')
+
 
         leftFrame(self).place(x = 20, y = 30, width=150, height=300)
         Mainframe(self).place(x = 160, y = 30, width=300, height=300)
