@@ -1,7 +1,5 @@
 #Python V3.5.2
 
-#Use arduino's TestingSketch for testing purpose
-
 import serial
 import tkinter as tk
 import time
@@ -13,7 +11,7 @@ while(1):
     except:
         print ("Enter a numeric value")
 
-data = serial.Serial(port, 9600)
+data = serial.Serial(port, baudrate = 9600, timeout=1500)
 
 def refresh(x):
     result = None

@@ -52,6 +52,8 @@ void loop() {
       digitalWrite(13, LOW);
     }else if(inputString == "3"){
       digitalWrite(13, HIGH);
+    }else if(inputString == "4"){
+      digitalWrite(13, LOW);
     }
     // clear the string:
     inputString = "";
