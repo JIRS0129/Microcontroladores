@@ -94,21 +94,29 @@ class Mainframe(tk.Frame):
         
     def GetTemp(self):
         #Convert what's comming on serial
-        self.Voltaje.set( round( ((refresh() * 5)/255),3 ) )
-        
+        self.Volt = refresh()
+        self.Volt = round(((self.Volt * 5)/255),3)
+        self.Voltaje.set(self.Volt)
         # Now repeat call
         self.after(self.TimerInterval,self.GetTemp)
-
+        
     def send(self):
         #Checking if angle in valid range
+        try:
+            int(self.spBox.get())
+        except:
+            self.Error.set("Error")
+            return
         if(not(int(self.spBox.get()) <= 180  and int(self.spBox.get()) >= 0)):
             self.Error.set("Error: ángulo invalido")
         else:
             #Reading angle and conversion
-            self.angle = int(self.spBox.get())
-            self.angle = str(int(round(self.angle * 228 / 180, 0)))
-            #Encoding and sending
-            data.write(bytes(self.angle.encode()))
+            self.sending = int(self.spBox.get())
+            self.sending = round(self.sending * 119 / 180, 0) + 41
+            self.sending = int(self.sending)
+            self.sending = chr(self.sending)
+            
+            data.write(bytes(self.sending.encode()))
             self.Error.set("")
         
 

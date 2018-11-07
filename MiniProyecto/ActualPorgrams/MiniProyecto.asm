@@ -19,6 +19,7 @@
    STATUS_TEMP    RES        1      ; status used for context saving
    DELAY1	  RES	    1
    DELAY2	  RES	    1
+	  VOLTAJE   RES 1
 ;*******************************************************************************
 ; Reset Vector
 ;*******************************************************************************
@@ -50,14 +51,16 @@ START
 ;*******************************************************************************
 LOOP:
     
-    CALL    DELAY_500US			; delay 
+    CALL    DELAY_50MS		; delay 
+    
     BSF    ADCON0, GO			; EMPIECE LA CONVERSIÓN
 CHECKADC:
     BTFSC   ADCON0, GO			; revisa que terminó la conversión
     GOTO    CHECKADC
-    MOVF    ADRESH, W
-    MOVWF   PORTA				; mueve adresh al puerto b
     BCF	    PIR1, ADIF			; borramos la bandera del adc
+    MOVF    ADRESH, W
+    MOVWF   VOLTAJE				; mueve adresh al puerto b
+    
     
 CHECK_RCIF:			    ; RECIBE EN RX y lo muestra en PORTD
     BTFSS   PIR1, RCIF
@@ -67,7 +70,7 @@ CHECK_RCIF:			    ; RECIBE EN RX y lo muestra en PORTD
     MOVWF   PORTD
     
 CHECK_TXIF: 
-    MOVF    PORTA, W	    ; ENVÍA PORTB POR EL TX
+    MOVF    VOLTAJE, W	    ; ENVÍA PORTB POR EL TX
     MOVWF   TXREG
    
     BTFSS   PIR1, TXIF
@@ -132,7 +135,7 @@ CONFIG_IO
     BCF ADCON0, ADCS1
     BSF ADCON0, ADCS0		; FOSC/8 RELOJ TAD
     
-    BSF ADCON0, CHS3		; CH0
+    BCF ADCON0, CHS3		; CH0
     BCF ADCON0, CHS2
     BCF ADCON0, CHS1
     BCF ADCON0, CHS0	
@@ -144,9 +147,9 @@ CONFIG_IO
     BSF ADCON0, ADON		; ENCIENDO EL MÓDULO ADC
     
     BANKSEL TRISA
-    BSF	    TRISB, RB2		; RA0 COMO ENTRADA
-    BANKSEL ANSELH
-    BSF	    ANSELH, 0		; ANS0 COMO ENTRADA ANALÓGICA
+    BSF	    TRISA, RA0		; RA0 COMO ENTRADA
+    BANKSEL ANSEL
+    BSF	    ANSEL, 0		; ANS0 COMO ENTRADA ANALÓGICA
     
     RETURN
 ;-----------------------------------------------
@@ -168,7 +171,7 @@ DELAY_500US
 CONFIG_PWM
     BANKSEL TRISC
     BSF	    TRISC, RC1		; ESTABLEZCO RC1 / CCP2 COMO ENTRADA
-    MOVLW   .155
+    MOVLW   .255
     MOVWF   PR2			    ; COLOCO EL VALOR DEL PERIODO DE MI SEÑAL 20mS
     
     BANKSEL PORTA
