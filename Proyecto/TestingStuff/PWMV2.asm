@@ -67,13 +67,13 @@ START
     
     BANKSEL PORTA
     
-    MOVLW   .33
+    MOVLW   .17				; valor min frecuencia de 660 us
     MOVWF   SERVO1
-    MOVLW   .50
+    MOVLW   .38				; valor medio frecuencia de 1.480 ms
     MOVWF   SERVO2
-    MOVLW   .99
+    MOVLW   .20
     MOVWF   SERVO3
-    MOVLW   .50
+    MOVLW   .59				; valor MAX frecuencia de 2.280 ms
     MOVWF   SERVO4
     
 ;***************************
