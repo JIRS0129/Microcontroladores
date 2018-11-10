@@ -23,6 +23,7 @@
    DELAY2	  RES	    1
    VOLTAJE	  RES	    1
     SERVO1	    RES	    1	    ; VAR THAT PWM FOR SERVO 1 HAS TO REACH
+    SERVO1_PREV	    RES	    1
     SERVO2	    RES	    1	    ; VAR THAT PWM FOR SERVO 2 HAS TO REACH
     SERVO3	    RES	    1	    ; VAR THAT PWM FOR SERVO 3 HAS TO REACH
     SERVO4	    RES	    1	    ; VAR THAT PWM FOR SERVO 4 HAS TO REACH
@@ -70,7 +71,7 @@ START
     CALL    INT_CONFIG
     BANKSEL PORTA
     
-    MOVLW   .17				; valor min frecuencia de 660 us
+    MOVLW   .45				; valor min frecuencia de 660 us .17
     MOVWF   SERVO1
     MOVLW   .31				
     MOVWF   SERVO2
@@ -92,9 +93,36 @@ CHECK_AD:
     GOTO    $-1
     BCF	    PIR1, ADIF			; borramos la bandera del adc
     MOVF    ADRESH, W
-    MOVWF   VOLTAJE
-    			; mueve adresh al puerto b
+    MOVWF   SERVO1_PREV
     
+PROCESAMIENTO_SERVO1:
+SUBIR_SERVO1:
+    MOVLW   .30			    ; VALOR MINIMO PARA QUE SERVO SE MEVA A LA IZQUIEDA
+    SUBWF   SERVO1_PREV, W	    ; VALOR RECIBIDO DE ADC
+    BTFSC   STATUS, C		    ; SI ES <30, SE MUEVE SERVO A IZQUIERDA
+    GOTO    BAJAR_SERVO1
+    
+    MOVLW   .18
+    SUBWF   SERVO1, W
+    BTFSS   STATUS, C
+    GOTO    BAJAR_SERVO1		    ; NO PERMITE BAJAR DE .17 EN SERVO1
+    
+    MOVLW   .2
+    SUBWF    SERVO1, F
+    
+BAJAR_SERVO1:    
+    MOVLW   .200			    ; VALOR MINIMO PARA QUE SERVO SE MEVA A LA IZQUIEDA
+    SUBWF   SERVO1_PREV, W	    ; VALOR RECIBIDO DE ADC
+    BTFSS   STATUS, C		    ; SI ES <30, SE MUEVE SERVO A IZQUIERDA
+    GOTO    CHECK_RCIF
+    
+    MOVLW   .59
+    SUBWF   SERVO1, W
+    BTFSC   STATUS, C
+    GOTO    CHECK_RCIF		    ; NO PERMITE BAJAR DE .17 EN SERVO1
+    
+    MOVLW   .2
+    ADDWF    SERVO1, F
     
     
 CHECK_RCIF:			    ; RECIBE EN RX y lo muestra en PORTD
@@ -104,7 +132,7 @@ CHECK_RCIF:			    ; RECIBE EN RX y lo muestra en PORTD
     MOVWF   PORTD
     
 CHECK_TXIF: 
-    MOVF   VOLTAJE, W		    ; ENVÍA PORTB POR EL TX
+    MOVF   SERVO1_PREV, W		    ; ENVÍA PORTB POR EL TX
     MOVWF   TXREG
    
     BTFSS   PIR1, TXIF
