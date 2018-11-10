@@ -165,12 +165,12 @@ CONFIG_IO
 ;-----------------------------------------------
     CONFIG_ADC
     BANKSEL PORTA
-    BCF ADCON0, ADCS1
-    BSF ADCON0, ADCS0		; FOSC/8 RELOJ TAD
+    BsF ADCON0, ADCS1
+    BcF ADCON0, ADCS0		; FOSC/32 RELOJ TAD
     
-    BCF ADCON0, CHS3		; CH0
+    BSF ADCON0, CHS3		; CH0
     BCF ADCON0, CHS2
-    BCF ADCON0, CHS1
+    BSF ADCON0, CHS1
     BCF ADCON0, CHS0	
     BANKSEL TRISA
     BCF ADCON1, ADFM		; JUSTIFICACIÓN A LA IZQUIERDA
@@ -179,10 +179,10 @@ CONFIG_IO
     BANKSEL PORTA
     BSF ADCON0, ADON		; ENCIENDO EL MÓDULO ADC
     
-    BANKSEL TRISA
-    BSF	    TRISA, RA0		; RA0 COMO ENTRADA
-    BANKSEL ANSEL
-    BSF	    ANSEL, 0		; ANS0 COMO ENTRADA ANALÓGICA
+    BANKSEL TRISB
+    BSF	    TRISB, RB1		; Rb0
+    BANKSEL ANSELH
+    BSF	    ANSELH, 1		; ANS0 COMO ENTRADA ANALÓGICA
     
     RETURN
 ;-----------------------------------------------
@@ -270,25 +270,25 @@ INT_TMR0:
     MOVF    SERVO1, W
     SUBWF   TMR0_DELAY, W
     BTFSC   STATUS, C
-    BCF	    PORTB, RB0
+    BCF	    PORTA, RA0
     
     ; COMPARE SECOND PWM
     MOVF    SERVO2, W
     SUBWF   TMR0_DELAY, W
     BTFSC   STATUS, C
-    BCF	    PORTB, RB1
+    BCF	    PORTA, RA1
     
     ; COMPARE THIRD PWM
     MOVF    SERVO3, W
     SUBWF   TMR0_DELAY, W
     BTFSC   STATUS, C
-    BCF	    PORTB, RB2
+    BCF	    PORTA, RA2
     
     ; COMPARE FOURTH PWM
     MOVF    SERVO4, W
     SUBWF   TMR0_DELAY, W
     BTFSC   STATUS, C
-    BCF	    PORTB, RB3
+    BCF	    PORTA, RA3
     
     RETURN
     
@@ -298,10 +298,10 @@ INT_TMR1:
     ;MOVLW   .2
     ;XORWF   PORTB, F
     
-    BSF	    PORTB, RB0
-    BSF	    PORTB, RB1
-    BSF	    PORTB, RB2
-    BSF	    PORTB, RB3
+    BSF	    PORTA, RA0
+    BSF	    PORTA, RA1
+    BSF	    PORTA, RA2
+    BSF	    PORTA, RA3
     
     ; RESET TIMER
     BCF		PIR1, TMR1IF
