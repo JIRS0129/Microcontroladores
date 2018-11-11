@@ -1,41 +1,26 @@
+#"595.59"[:"595.59".find(".")]
+
 #Python V3.5.2
 
 #Use arduino's TestingSketch for testing purpose
 
 import tkinter as tk
 import tkinter.ttk as ttk
-import serial
 import time
 import os
 
-while(1):
-    while(1):
-        try:
-            port = "com" + str(int(input(">  COM: ")))  #COM input
-            break
-        except:
-            print ("Enter a numeric value")             #Error if not valid number
-    try:
-        data = serial.Serial(port, baudrate = 9600, timeout=1500)   #Open serial port
-        break
-    except:
-        print("Unable to open port")                    #Error if port error/timeout
-
-
 bgColor = "cyan"
 
-def refreshSerial():
-    result = None
-    data.reset_input_buffer()
-    while(result is None):
-        result = data.readline(1)
-    result = ord(result)
-    print(result)
+def refresh():
+    result = 5
     return(result)
 
 class refreshFrame(tk.Frame):
     def __init__(self,master,*args,**kwargs):
         tk.Frame.__init__(self,master,*args,**kwargs)
+
+        self.Voltaje = tk.IntVar()
+        self.count = tk.IntVar()
 
         #Timer interval (us)
         self.TimerInterval = 5
@@ -44,25 +29,9 @@ class refreshFrame(tk.Frame):
         
         
     def refresh(self):
-        if(recording.get()):
+        #if(recording.get()):
             #Save incoming data to internal db
-            file = open(rName.get() + ".txt","a")
-            file.write("%d\n" % (refreshSerial()))
-            file.close()
-
-        if(progressbar.winfo_ismapped()):
-            if(len(instructions)):
-            #Reading angle and conversion
-                self.sending = int(instructions.pop(0))
-                self.sending = chr(self.sending)
-
-                progressbar.step(100/amount.get())
-            
-                data.write(bytes(self.sending.encode()))
-                if not(len(instructions)):
-                    progressbar.place_forget()
-                    button.config(state = "active", bg = "green", text = "Play")
-                    recButton.config(state = "active", bg = "green", text = "Start Recording")
+            #print("")
         
         # Now repeat call
         self.after(self.TimerInterval,self.refresh)
@@ -76,9 +45,7 @@ class leftFrame(tk.Frame):
         self.background_image=tk.PhotoImage(file = self.path)   #Create variable with image
         self.lbl = tk.Label(self, image=self.background_image, width=50, height=10, bg=bgColor) #Initialize label with image
 
-        global rName         #Name of current Routine
-        rName = tk.StringVar()
-        rName.set("")
+        self.rName = ""         #Name of current Routine
 
         #Global var to determine if currently recording
         global recording
@@ -106,8 +73,8 @@ class leftFrame(tk.Frame):
                 button.config(state = "disabled", bg = "grey64", text = "Recording")
                 recButton['text']  ='Stop Recording'       #Change button's properties
                 recButton['bg'] = 'red'
-                rName.set(self.name.get())            #Change var's value
-                file = open(rName.get() + ".txt","w+")   #Open and clear file
+                self.rName = self.name.get()            #Change var's value
+                file = open(self.rName + ".txt","w+")   #Open and clear file
                 file.write("")
                 file.close()
                 
@@ -127,7 +94,11 @@ class leftFrame(tk.Frame):
 
     def receive(self):
         if(recording.get()):
-            
+            file = open(self.rName + ".txt","a")
+            file.write("This is line %d\n" % (self.count.get()))
+            file.close()
+            self.count.set(1+self.count.get())
+
             if(len(self.lbl.place_info())):
                 self.lbl.place_forget()
             else:
@@ -163,6 +134,20 @@ class rightFrame(tk.Frame):
         button = tk.Button(self, text = "Play", command = self.play, font=("MS Serif", 13), bg="green", fg="white", width=10, height=2)
         button.place(x = 60, y = 150)
 
+        self.TimerInterval2 = 1000
+        self.refresh()
+
+    def refresh(self):
+        if(len(instructions)):
+            print(instructions.pop(0))
+        if not(len(instructions)):
+            progressbar.place_forget()
+            button.config(state = "active", bg = "green", text = "Play")
+            recButton.config(state = "active", bg = "green", text = "Start Recording")
+
+        if(progressbar.winfo_ismapped()):
+            progressbar.step(100/amount.get())
+        self.after(self.TimerInterval2,self.refresh)
 
     def update(self):
         self.vals = [x for x in os.listdir() if 'txt' in x]
