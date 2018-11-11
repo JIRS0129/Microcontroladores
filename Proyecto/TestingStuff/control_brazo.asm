@@ -29,6 +29,12 @@ GPR_VAR        UDATA
 	TMR0_DELAY	    RES		1	; VAR THAT COUNTS TMR0 INTS
 	MANDAR?		    RES		1	; VAR PARA DECIDIR SI GRABAR RUTINA (VALOR RECIBIDO DE PC)
 	MANDAR_DATOS	    RES		1	; VAR PARA DICIDIR SI GRABAR RUTINA (PARA PIC)
+	RECIBIR_DATOS	    RES		1
+	TERMINAR_GRABACION  RES		1
+	SERVO1_RX	    RES		1
+	SERVO2_RX	    RES		1
+	SERVO3_RX	    RES		1
+	SERVO4_RX	    RES		1
 ;*******************************************************************************
 ; Reset Vector
 ;*******************************************************************************
@@ -146,7 +152,7 @@ BAJAR_SERVO1:
     ADDWF	    SERVO1, F
     CALL	    DELAY_4.375MS
  ;*******************************************************************************
-
+    
 ADC2:   
     BSF		    ADCON0, CHS3		; CH8
     BCF		    ADCON0, CHS2
@@ -283,6 +289,7 @@ BAJAR_SERVO4:
     
 ;--------------------------------------------------------------------------------
 CHECK_RCIF:					; RECIBE EN RX 
+    BCF		    PORTD, 0
     BTFSS	    PIR1, RCIF
     GOTO	    CHECK_TXIF
     MOVF	    RCREG, W
@@ -292,17 +299,34 @@ CHECK_RCIF:					; RECIBE EN RX
 CHECK_TXIF: 
     
     MOVF	    MANDAR?, W
-    SUBWF	    MANDAR_DATOS, W
+    SUBLW	    .1
     BTFSS	    STATUS, Z
-    GOTO	    NO_MANDAR
+    GOTO	    RECIBIR_DATOS_DE_PC
     
-    MOVF	    ESTADO, W
-    BTFSC	    ESTADO, 1
     GOTO	    TX_DATOS
     
+    
+RECIBIR_DATOS_DE_PC:
+    MOVF	    MANDAR?, W
+    SUBLW	    .2
+    BTFSS	    STATUS, Z
+    GOTO	    NO_MANDAR
+    MOVLW	    B'00000100'
+    MOVWF	    ESTADO
+    
+    MOVF	    SERVO1, W
+    MOVWF	    SERVO1_RX
+    MOVF	    SERVO2, W
+    MOVWF	    SERVO2_RX
+    MOVF	    SERVO3, W
+    MOVWF	    SERVO3_RX
+    MOVF	    SERVO4, W
+    MOVWF	    SERVO4_RX
+    
+    GOTO	    ESTADOS
+    
 TX_DATOS:
-    BSF		    PORTD, 1
-    BCF		    PORTD, 0
+    
    
     MOVLW	    B'00000010'
     MOVWF	    ESTADO
@@ -330,7 +354,7 @@ TX_DATOS:
     
     GOTO	    ESTADOS
 NO_MANDAR:
-    BSF		    PORTD, 0
+    
     MOVLW	    B'00000001'
     MOVWF	    ESTADO
     GOTO	    ESTADOS
@@ -338,8 +362,106 @@ NO_MANDAR:
  
 ;*******************************************************************************
     LOOP2:
-    BSF		    PORTD, 2
-    RETURN
+    
+    					; RECIBE EN RX 
+   
+    
+    RECEPCION_SERVO1:
+    BTFSS	    PIR1, RCIF
+    GOTO	    RECEPCION_SERVO2
+    MOVF	    RCREG, W
+    MOVWF	    SERVO1_RX
+    
+    RECEPCION_SERVO2:
+    BTFSS	    PIR1, RCIF
+    GOTO	    RECEPCION_SERVO3
+    MOVF	    RCREG, W
+    MOVWF	    SERVO2_RX
+    
+    RECEPCION_SERVO3:
+    BTFSS	    PIR1, RCIF
+    GOTO	    RECEPCION_SERVO4
+    MOVF	    RCREG, W
+    MOVWF	    SERVO3_RX
+    
+    RECEPCION_SERVO4:
+    
+    BTFSS	    PIR1, RCIF
+    GOTO	    PROCESAMIENTO_RX
+    MOVF	    RCREG, W
+    MOVWF	    SERVO4_RX
+    
+PROCESAMIENTO_RX:
+
+    MOVLW	    .17
+    SUBWF	    SERVO1_RX, W
+    BTFSS	    STATUS, C
+    GOTO	    NO_RECIBIR		; NO PERMITE BAJAR DE .17 EN SERVO4
+    
+    MOVLW	    .60
+    SUBWF	    SERVO1_RX, W
+    BTFSC	    STATUS, C
+    GOTO	    NO_RECIBIR			; NO PERMITE SUBIR DE .59 EN SERVO1
+    
+    MOVF	    SERVO1_RX, W
+    MOVWF	    SERVO1
+    
+    
+    
+    MOVLW	    .17
+    SUBWF	    SERVO2_RX, W
+    BTFSS	    STATUS, C
+    GOTO	    NO_RECIBIR		; NO PERMITE BAJAR DE .17 EN SERVO4
+    
+    MOVLW	    .60
+    SUBWF	    SERVO2_RX, W
+    BTFSC	    STATUS, C
+    GOTO	    NO_RECIBIR			; NO PERMITE SUBIR DE .59 EN SERVO1
+    
+    MOVF	    SERVO2_RX, W
+    MOVWF	    SERVO2
+    
+    
+    MOVLW	    .17
+    SUBWF	    SERVO3_RX, W
+    BTFSS	    STATUS, C
+    GOTO	    NO_RECIBIR		; NO PERMITE BAJAR DE .17 EN SERVO4
+    
+    MOVLW	    .60
+    SUBWF	    SERVO3_RX, W
+    BTFSC	    STATUS, C
+    GOTO	    NO_RECIBIR			; NO PERMITE SUBIR DE .59 EN SERVO1
+    
+    MOVF	    SERVO3_RX, W
+    MOVWF	    SERVO3
+    
+    
+    MOVLW	    .17
+    SUBWF	    SERVO4_RX, W
+    BTFSS	    STATUS, C
+    GOTO	    NO_RECIBIR		; NO PERMITE BAJAR DE .17 EN SERVO4
+    
+    MOVLW	    .60
+    SUBWF	    SERVO4_RX, W
+    BTFSC	    STATUS, C
+    GOTO	    NO_RECIBIR			; NO PERMITE SUBIR DE .59 EN SERVO1
+    
+    MOVF	    SERVO4_RX, W
+    MOVWF	    SERVO4
+    BSF		    PORTD, 0
+    GOTO	    ESTADOS
+	    
+    
+NO_RECIBIR:
+    
+    MOVLW	    B'00000001'
+    MOVWF	    ESTADO
+    CLRF	    TERMINAR_GRABACION
+    CLRF	    MANDAR?
+    GOTO	    ESTADOS
+    
+    
+    
     
     
 ;********************************************************************************
@@ -394,6 +516,10 @@ CONFIG_IO:
     CLRF	    MANDAR_DATOS
     INCF	    MANDAR_DATOS
     CLRF	    MANDAR?
+    CLRF	    RECIBIR_DATOS
+    MOVLW	    .2
+    MOVWF	    RECIBIR_DATOS
+    CLRF	    TERMINAR_GRABACION
     
     RETURN    
 ;-----------------------------------------------
