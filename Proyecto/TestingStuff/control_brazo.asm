@@ -25,8 +25,11 @@
     SERVO1	    RES	    1	    ; VAR THAT PWM FOR SERVO 1 HAS TO REACH
     SERVO1_PREV	    RES	    1
     SERVO2	    RES	    1	    ; VAR THAT PWM FOR SERVO 2 HAS TO REACH
+SERVO2_PREV	    RES	    1
     SERVO3	    RES	    1	    ; VAR THAT PWM FOR SERVO 3 HAS TO REACH
+SERVO3_PREV	    RES	    1
     SERVO4	    RES	    1	    ; VAR THAT PWM FOR SERVO 4 HAS TO REACH
+SERVO4_PREV	    RES	    1
     TMR0_DELAY	    RES	    1	    ; VAR THAT COUNTS TMR0 INTS
 ;*******************************************************************************
 ; Reset Vector
@@ -71,13 +74,13 @@ START
     CALL    INT_CONFIG
     BANKSEL PORTA
     
-    MOVLW   .45				; valor min frecuencia de 660 us .17
+    MOVLW   .38				; valor min frecuencia de 660 us .17
     MOVWF   SERVO1
-    MOVLW   .31				
+    MOVLW   .38				
     MOVWF   SERVO2
-    MOVLW   .45
+    MOVLW   .38
     MOVWF   SERVO3
-    MOVLW   .59				; valor MAX frecuencia de 2.280 ms
+    MOVLW   .38				; valor MAX frecuencia de 2.280 ms
     MOVWF   SERVO4
 ;*******************************************************************************
    
@@ -85,16 +88,20 @@ START
 ; CICLO INFINITO
 ;*******************************************************************************
 LOOP:
-    CALL    DELAY_50MS
-    CALL    DELAY_50MS
+ADC1:   
+    
+    BSF ADCON0, CHS3		    ; CH10
+    BCF ADCON0, CHS2
+    BSF ADCON0, CHS1
+    BCF ADCON0, CHS0
     BSF	    ADCON0, GO		    ; EMPIEZA LA CONVERSIÓN
-CHECK_AD:
+CHECK_AD_SERVO1:
     BTFSC   ADCON0, GO			; revisa que terminó la conversión
     GOTO    $-1
     BCF	    PIR1, ADIF			; borramos la bandera del adc
     MOVF    ADRESH, W
     MOVWF   SERVO1_PREV
-    
+;-------------------------------------------------------------------------   
 PROCESAMIENTO_SERVO1:
 SUBIR_SERVO1:
     MOVLW   .30			    ; VALOR MINIMO PARA QUE SERVO SE MEVA A LA IZQUIEDA
@@ -107,24 +114,161 @@ SUBIR_SERVO1:
     BTFSS   STATUS, C
     GOTO    BAJAR_SERVO1		    ; NO PERMITE BAJAR DE .17 EN SERVO1
     
-    MOVLW   .2
+    MOVLW   .1
     SUBWF    SERVO1, F
-    
+    CALL    DELAY_4.375MS
 BAJAR_SERVO1:    
     MOVLW   .200			    ; VALOR MINIMO PARA QUE SERVO SE MEVA A LA IZQUIEDA
     SUBWF   SERVO1_PREV, W	    ; VALOR RECIBIDO DE ADC
     BTFSS   STATUS, C		    ; SI ES <30, SE MUEVE SERVO A IZQUIERDA
-    GOTO    CHECK_RCIF
+    GOTO    ADC2
     
     MOVLW   .59
     SUBWF   SERVO1, W
     BTFSC   STATUS, C
+    GOTO    ADC2		    ; NO PERMITE BAJAR DE .17 EN SERVO1
+    
+    MOVLW   .1
+    ADDWF    SERVO1, F
+    CALL    DELAY_4.375MS
+ ;*******************************************************************************
+
+ADC2:   
+    BSF ADCON0, CHS3		    ; CH8
+    BCF ADCON0, CHS2
+    BCF ADCON0, CHS1
+    BCF ADCON0, CHS0 
+    CALL DELAY_125US
+    BSF	    ADCON0, GO
+CHECK_AD_SERVO2:
+    BTFSC   ADCON0, GO			; revisa que terminó la conversión
+    GOTO    $-1
+    BCF	    PIR1, ADIF			; borramos la bandera del adc
+    MOVF    ADRESH, W
+    MOVWF   SERVO2_PREV
+    
+PROCESAMIENTO_SERVO2:
+SUBIR_SERVO2:
+    MOVLW   .30			    ; VALOR MINIMO PARA QUE SERVO SE MEVA A LA IZQUIEDA
+    SUBWF   SERVO2_PREV, W	    ; VALOR RECIBIDO DE ADC
+    BTFSC   STATUS, C		    ; SI ES <30, SE MUEVE SERVO A IZQUIERDA
+    GOTO    BAJAR_SERVO2
+    
+    MOVLW   .18
+    SUBWF   SERVO2, W
+    BTFSS   STATUS, C
+    GOTO    BAJAR_SERVO2		    ; NO PERMITE BAJAR DE .17 EN SERVO1
+    
+    MOVLW   .1
+    SUBWF    SERVO2, F
+    CALL    DELAY_4.375MS
+BAJAR_SERVO2:    
+    MOVLW   .200			    ; VALOR MINIMO PARA QUE SERVO SE MEVA A LA IZQUIEDA
+    SUBWF   SERVO2_PREV, W	    ; VALOR RECIBIDO DE ADC
+    BTFSS   STATUS, C		    ; SI ES <30, SE MUEVE SERVO A IZQUIERDA
+    GOTO    ADC3
+    
+    MOVLW   .59
+    SUBWF   SERVO2, W
+    BTFSC   STATUS, C
+    GOTO    ADC3		    ; NO PERMITE BAJAR DE .17 EN SERVO1
+    
+    MOVLW   .1
+    ADDWF    SERVO2, F
+    CALL    DELAY_4.375MS
+;*******************************************************************************
+
+ADC3:   
+    BSF ADCON0, CHS3		    ; CH8
+    BCF ADCON0, CHS2
+    BCF ADCON0, CHS1
+    BSF ADCON0, CHS0 
+    CALL DELAY_125US
+    BSF	    ADCON0, GO
+CHECK_AD_SERVO3:
+    BTFSC   ADCON0, GO			; revisa que terminó la conversión
+    GOTO    $-1
+    BCF	    PIR1, ADIF			; borramos la bandera del adc
+    MOVF    ADRESH, W
+    MOVWF   SERVO3_PREV
+PROCESAMIENTO_SERVO3:
+SUBIR_SERVO3:
+    MOVLW   .30			    ; VALOR MINIMO PARA QUE SERVO SE MEVA A LA IZQUIEDA
+    SUBWF   SERVO3_PREV, W	    ; VALOR RECIBIDO DE ADC
+    BTFSC   STATUS, C		    ; SI ES <30, SE MUEVE SERVO A IZQUIERDA
+    GOTO    BAJAR_SERVO3
+    
+    MOVLW   .18
+    SUBWF   SERVO3, W
+    BTFSS   STATUS, C
+    GOTO    BAJAR_SERVO3		    ; NO PERMITE BAJAR DE .17 EN SERVO1
+    
+    MOVLW   .1
+    SUBWF    SERVO3, F
+    CALL    DELAY_4.375MS
+    
+BAJAR_SERVO3:    
+    MOVLW   .200			    ; VALOR MINIMO PARA QUE SERVO SE MEVA A LA IZQUIEDA
+    SUBWF   SERVO3_PREV, W	    ; VALOR RECIBIDO DE ADC
+    BTFSS   STATUS, C		    ; SI ES <30, SE MUEVE SERVO A IZQUIERDA
+    GOTO    ADC4
+    
+    MOVLW   .59
+    SUBWF   SERVO3, W
+    BTFSC   STATUS, C
+    GOTO    ADC4		    ; NO PERMITE BAJAR DE .17 EN SERVO1
+    
+    MOVLW   .1
+    ADDWF   SERVO3, F
+    CALL    DELAY_4.375MS
+;********************************************************************************
+
+ADC4:   
+    BSF ADCON0, CHS3		    ; CH8
+    BCF ADCON0, CHS2
+    BSF ADCON0, CHS1
+    BSF ADCON0, CHS0 
+    CALL DELAY_125US
+    BSF	    ADCON0, GO
+CHECK_AD_SERVO4:
+    BTFSC   ADCON0, GO			; revisa que terminó la conversión
+    GOTO    $-1
+    BCF	    PIR1, ADIF			; borramos la bandera del adc
+    MOVF    ADRESH, W
+    MOVWF   SERVO4_PREV
+PROCESAMIENTO_SERVO4:
+SUBIR_SERVO4:
+    
+    MOVLW   .30			    ; VALOR MINIMO PARA QUE SERVO SE MEVA A LA IZQUIEDA
+    SUBWF   SERVO4_PREV, W	    ; VALOR RECIBIDO DE ADC
+    BTFSC   STATUS, C		    ; SI ES <30, SE MUEVE SERVO A IZQUIERDA
+    GOTO    BAJAR_SERVO4
+    
+    MOVLW   .18
+    SUBWF   SERVO4, W
+    BTFSS   STATUS, C
+    GOTO    BAJAR_SERVO4		    ; NO PERMITE BAJAR DE .17 EN SERVO1
+    
+    MOVLW   .1
+    SUBWF    SERVO4, F
+    CALL    DELAY_4.375MS
+    
+BAJAR_SERVO4:    
+    MOVLW   .200			    ; VALOR MINIMO PARA QUE SERVO SE MEVA A LA IZQUIEDA
+    SUBWF   SERVO4_PREV, W	    ; VALOR RECIBIDO DE ADC
+    BTFSS   STATUS, C		    ; SI ES <30, SE MUEVE SERVO A IZQUIERDA
+    GOTO    CHECK_RCIF
+    
+    MOVLW   .59
+    SUBWF   SERVO4, W
+    BTFSC   STATUS, C
     GOTO    CHECK_RCIF		    ; NO PERMITE BAJAR DE .17 EN SERVO1
     
-    MOVLW   .2
-    ADDWF    SERVO1, F
+    MOVLW   .1
+    ADDWF   SERVO4, F
+    CALL    DELAY_4.375MS
     
-    
+;--------------------------------------------------------------------------------
 CHECK_RCIF:			    ; RECIBE EN RX y lo muestra en PORTD
     BTFSS   PIR1, RCIF
     GOTO    CHECK_TXIF
@@ -209,21 +353,27 @@ CONFIG_IO
     
     BANKSEL TRISB
     BSF	    TRISB, RB1		; Rb0
+    BSF	    TRISB, RB2
+    BSF	    TRISB, RB3
+    BSF	    TRISB, RB4
     BANKSEL ANSELH
     BSF	    ANSELH, 1		; ANS0 COMO ENTRADA ANALÓGICA
+    BSF	    ANSELH, 2
+    BSF	    ANSELH, 3
+    BSF	    ANSELH, 4
     
     RETURN
 ;-----------------------------------------------
-DELAY_50MS
-    MOVLW   .100		    ; 1US 
+DELAY_4.375MS:
+    MOVLW   .35			    ; 1250 US
     MOVWF   DELAY2
-    CALL    DELAY_500US
+    CALL    DELAY_125US
     DECFSZ  DELAY2		    ;DECREMENTA CONT1
     GOTO    $-2			    ; IR A LA POSICION DEL PC - 1
     RETURN
     
-DELAY_500US
-    MOVLW   .250		    ; 1US 
+DELAY_125US:
+    MOVLW   .250		    ; 0.5US *250=125 US
     MOVWF   DELAY1	    
     DECFSZ  DELAY1		    ;DECREMENTA CONT1
     GOTO    $-1			    ; IR A LA POSICION DEL PC - 1
