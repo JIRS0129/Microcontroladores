@@ -50,27 +50,27 @@ class refreshFrame(tk.Frame):
             file.write("%d\n" % (refreshSerial()))
             file.close()
 
-##        if(progressbar.winfo_ismapped()):
-##            if(len(instructions)):
-##            #Reading angle and conversion
-##                self.sending = int(instructions.pop(0))
-##                self.sending = chr(self.sending)
-##
-##                progressbar.step(100/amount.get())
-##            
-##                data.write(bytes(self.sending.encode()))
-##                if not(len(instructions)):
-##                    progressbar.place_forget()
-##                    button.config(state = "active", bg = "green", text = "Play")
-##                    recButton.config(state = "active", bg = "green", text = "Start Recording")
-##                    #send 1
-##                    self.sending = 0
-##                    self.sending = chr(self.sending)
-##
-##                    x = 1
-##                    while(x <= 5):
-##                        data.write(bytes(self.sending.encode()))
-##                        x += 1
+        if(progressbar.winfo_ismapped()):
+            if(len(instructions)):
+            #Reading angle and conversion
+                self.sending = int(instructions.pop(0))
+                self.sending = chr(self.sending)
+
+                progressbar.step(100/amount.get())
+            
+                data.write(bytes(self.sending.encode()))
+                if not(len(instructions)):
+                    progressbar.place_forget()
+                    button.config(state = "active", bg = "green", text = "Play")
+                    recButton.config(state = "active", bg = "green", text = "Start Recording")
+                    #send 1
+                    self.sending = 0
+                    self.sending = chr(self.sending)
+
+                    x = 1
+                    while(x <= 5):
+                        data.write(bytes(self.sending.encode()))
+                        x += 1
         
         # Now repeat call
         self.after(self.TimerInterval,self.refresh)
@@ -161,8 +161,6 @@ class rightFrame(tk.Frame):
     def __init__(self,master,*args,**kwargs):
         tk.Frame.__init__(self,master,*args,**kwargs)
 
-        self.TimerInterval = 8
-
         global instructions
         instructions = []
 
@@ -184,8 +182,6 @@ class rightFrame(tk.Frame):
         global button
         button = tk.Button(self, text = "Play", command = self.play, font=("MS Serif", 13), bg="green", fg="white", width=10, height=2)
         button.place(x = 60, y = 150)
-
-        self.refresh()
 
 
     def update(self):
@@ -216,34 +212,6 @@ class rightFrame(tk.Frame):
             while(content.count('\n')):
                 instructions.append(content[:content.find('\n')])
                 content = content[content.find('\n') + 1:]
-
-    def refresh(self):
-
-        if(progressbar.winfo_ismapped()):
-            print(len(instructions))
-            if(len(instructions)):
-            #Reading angle and conversion
-                self.sending = int(instructions.pop(0))
-                self.sending = chr(self.sending)
-
-                progressbar.step(100/amount.get())
-            
-                data.write(bytes(self.sending.encode()))
-                if not(len(instructions)):
-                    progressbar.place_forget()
-                    button.config(state = "active", bg = "green", text = "Play")
-                    recButton.config(state = "active", bg = "green", text = "Start Recording")
-                    #send 1
-                    self.sending = 0
-                    self.sending = chr(self.sending)
-
-                    x = 1
-                    while(x <= 5):
-                        data.write(bytes(self.sending.encode()))
-                        x += 1
-        
-        # Now repeat call
-        self.after(self.TimerInterval,self.refresh)                
 
 class App(tk.Tk):
     def __init__(self):
