@@ -24,18 +24,25 @@ while(1):
 
 bgColor = "cyan"
 
-def refreshSerial():
+def refreshSerial(first):
     result = None
-    #data.reset_input_buffer()
-    while(result is None):
-        result = data.readline(1)
-    result = ord(result)
-    print(result)
+    if(first):
+        while(result != 1):
+            result = data.readline(1)
+            result = ord(result)
+    else:
+        #data.reset_input_buffer()
+        while(result is None):
+            result = data.readline(1)
+        result = ord(result)
+        print(result)
     return(result)
 
 class refreshFrame(tk.Frame):
     def __init__(self,master,*args,**kwargs):
         tk.Frame.__init__(self,master,*args,**kwargs)
+
+        self.first = True
 
         #Timer interval (us)
         self.TimerInterval = 1
@@ -47,30 +54,8 @@ class refreshFrame(tk.Frame):
         if(recording.get()):
             #Save incoming data to internal db
             file = open(rName.get() + ".txt","a")
-            file.write("%d\n" % (refreshSerial()))
+            file.write("%d\n" % (refreshSerial(self.first)))
             file.close()
-
-##        if(progressbar.winfo_ismapped()):
-##            if(len(instructions)):
-##            #Reading angle and conversion
-##                self.sending = int(instructions.pop(0))
-##                self.sending = chr(self.sending)
-##
-##                progressbar.step(100/amount.get())
-##            
-##                data.write(bytes(self.sending.encode()))
-##                if not(len(instructions)):
-##                    progressbar.place_forget()
-##                    button.config(state = "active", bg = "green", text = "Play")
-##                    recButton.config(state = "active", bg = "green", text = "Start Recording")
-##                    #send 1
-##                    self.sending = 0
-##                    self.sending = chr(self.sending)
-##
-##                    x = 1
-##                    while(x <= 5):
-##                        data.write(bytes(self.sending.encode()))
-##                        x += 1
         
         # Now repeat call
         self.after(self.TimerInterval,self.refresh)
@@ -119,6 +104,8 @@ class leftFrame(tk.Frame):
                 file.write("")
                 file.close()
 
+                data.reset_input_buffer()
+
                 #send 1
                 self.sending = 1
                 self.sending = chr(self.sending)
@@ -133,7 +120,7 @@ class leftFrame(tk.Frame):
                 button.config(state = "active", bg = "green", text = "Play")
                 self.lbl.place_forget()     #Reset the recording feedback image
 
-                #send 1
+                #send 0
                 self.sending = 0
                 self.sending = chr(self.sending)
             
