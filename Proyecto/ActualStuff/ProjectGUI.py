@@ -24,8 +24,13 @@ while(1):
 
 bgColor = "cyan"
 
-def refreshSerial():
+def refreshSerial(first):
     result = None
+    if(first):
+        while(result is None):
+            result = ord(data.readline(1))
+        return(result)
+    
     #data.reset_input_buffer()
     while(result is None):
         result = data.readline(1)
@@ -37,6 +42,8 @@ class refreshFrame(tk.Frame):
     def __init__(self,master,*args,**kwargs):
         tk.Frame.__init__(self,master,*args,**kwargs)
 
+        self.first = True
+
         #Timer interval (us)
         self.TimerInterval = 1
         #Calling timer function
@@ -44,10 +51,14 @@ class refreshFrame(tk.Frame):
         
         
     def refresh(self):
+        
         if(recording.get()):
+            if(self.first):
+                print(refreshSerial(self.first))
+                self.first = False
             #Save incoming data to internal db
             file = open(rName.get() + ".txt","a")
-            file.write("%d\n" % (refreshSerial()))
+            file.write("%d\n" % (refreshSerial(self.first)))
             file.close()
 
 ##        if(progressbar.winfo_ismapped()):
@@ -130,6 +141,7 @@ class leftFrame(tk.Frame):
                 #Calling timer function
                 self.receive()
             else:
+                
                 button.config(state = "active", bg = "green", text = "Play")
                 self.lbl.place_forget()     #Reset the recording feedback image
 
@@ -161,7 +173,7 @@ class rightFrame(tk.Frame):
     def __init__(self,master,*args,**kwargs):
         tk.Frame.__init__(self,master,*args,**kwargs)
 
-        self.TimerInterval = 8
+        self.TimerInterval = 5
 
         global instructions
         instructions = []
@@ -220,6 +232,7 @@ class rightFrame(tk.Frame):
     def refresh(self):
 
         if(progressbar.winfo_ismapped()):
+            #print(instructions[0])
             print(len(instructions))
             if(len(instructions)):
             #Reading angle and conversion
