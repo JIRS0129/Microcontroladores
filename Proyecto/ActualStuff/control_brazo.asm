@@ -85,7 +85,7 @@ START
     MOVWF	    SERVO2
     MOVLW	    .38				; SERVO3 A 90 GRADOS
     MOVWF	    SERVO3
-    MOVLW	    .38				; SERVO4 A 90 GRADOS
+    MOVLW	    .59				; SERVO4 A 90 GRADOS
     MOVWF	    SERVO4
     GOTO	    LOOP1			; SE INICIA POR DEFAULT EN UTILIZACION INDEPENDIENTE DE PC
 ;*******************************************************************************
@@ -143,7 +143,7 @@ BAJAR_SERVO1:
     BTFSS	    STATUS, C			; SI ES >200, SE MUEVE SERVO A DERECHA
     GOTO	    ADC2
     
-    MOVLW	    .59
+    MOVLW	    .55				; BASEEEE
     SUBWF	    SERVO1, W
     BTFSC	    STATUS, C
     GOTO	    ADC2			; NO PERMITE SUBIR DE .59 EN SERVO1
@@ -174,7 +174,7 @@ SUBIR_SERVO2:
     BTFSC	    STATUS, C			; SI ES <30, SE MUEVE SERVO A IZQUIERDA
     GOTO	    BAJAR_SERVO2
     
-    MOVLW	    .18
+    MOVLW	    .18 ;.30
     SUBWF	    SERVO2, W
     BTFSS	    STATUS, C
     GOTO	    BAJAR_SERVO2		; NO PERMITE BAJAR DE .18 EN SERVO2
@@ -188,7 +188,7 @@ BAJAR_SERVO2:
     BTFSS	    STATUS, C			; SI ES >200, SE MUEVE SERVO A DERECHA
     GOTO	    ADC3
     
-    MOVLW	    .59
+    MOVLW	    .55;.41
     SUBWF	    SERVO2, W
     BTFSC	    STATUS, C
     GOTO	    ADC3			; NO PERMITE SUBIR DE .59 EN SERVO2
@@ -233,7 +233,7 @@ BAJAR_SERVO3:
     BTFSS	    STATUS, C			; SI ES >200, SE MUEVE SERVO A DERECHA
     GOTO	    ADC4
     
-    MOVLW	    .59
+    MOVLW	    .55;.33
     SUBWF	    SERVO3, W
     BTFSC	    STATUS, C
     GOTO	    ADC4			; NO PERMITE SUBIR DE .59 EN SERVO1
@@ -263,7 +263,7 @@ SUBIR_SERVO4:
     BTFSC	    STATUS, C			; SI ES <30, SE MUEVE SERVO A IZQUIERDA
     GOTO	    BAJAR_SERVO4
     
-    MOVLW	    .18
+    MOVLW	    .43				; GARRA
     SUBWF	    SERVO4, W
     BTFSS	    STATUS, C
     GOTO	    BAJAR_SERVO4		; NO PERMITE BAJAR DE .17 EN SERVO4
@@ -327,7 +327,15 @@ RECIBIR_DATOS_DE_PC:
     
 TX_DATOS:
     
-   
+    BSF		    PORTD, 1
+    BTFSS	    ESTADO, 0
+    GOTO	    NOTRESPONSE
+    MOVLW	    .1
+    MOVWF	    TXREG
+    BTFSS	    PIR1, TXIF
+    GOTO	    $-1
+    call	    DELAY_125US
+NOTRESPONSE:
     MOVLW	    B'00000010'
     MOVWF	    ESTADO
     
@@ -335,21 +343,30 @@ TX_DATOS:
     MOVWF	    TXREG
     BTFSS	    PIR1, TXIF
     GOTO	    $-1
+    call	    DELAY_125US
+    
+    
     
     MOVF	    SERVO2, W		; ENVÍA SERVO1_PREV POR TX
     MOVWF	    TXREG
     BTFSS	    PIR1, TXIF
     GOTO	    $-1
+    call	    DELAY_125US
+    
+    
     
     MOVF	    SERVO3, W		; ENVÍA SERVO1_PREV POR TX
     MOVWF	    TXREG
     BTFSS	    PIR1, TXIF
     GOTO	    $-1
+    call	    DELAY_125US
+    
     
     MOVF	    SERVO4, W		; ENVÍA SERVO1_PREV POR TX
     MOVWF	    TXREG
     BTFSS	    PIR1, TXIF
     GOTO	    $-1
+    call	    DELAY_125US
     
     
     GOTO	    ESTADOS
@@ -368,26 +385,26 @@ NO_MANDAR:
     
     RECEPCION_SERVO1:
     BTFSS	    PIR1, RCIF
-    GOTO	    RECEPCION_SERVO2
+    GOTO	    $-1
     MOVF	    RCREG, W
     MOVWF	    SERVO1_RX
     
     RECEPCION_SERVO2:
     BTFSS	    PIR1, RCIF
-    GOTO	    RECEPCION_SERVO3
+    GOTO	    $-1
     MOVF	    RCREG, W
     MOVWF	    SERVO2_RX
     
     RECEPCION_SERVO3:
     BTFSS	    PIR1, RCIF
-    GOTO	    RECEPCION_SERVO4
+    GOTO	    $-1
     MOVF	    RCREG, W
     MOVWF	    SERVO3_RX
     
     RECEPCION_SERVO4:
-    
+    BSF		    PORTD, 0
     BTFSS	    PIR1, RCIF
-    GOTO	    PROCESAMIENTO_RX
+    GOTO	    $-1
     MOVF	    RCREG, W
     MOVWF	    SERVO4_RX
     
@@ -448,7 +465,7 @@ PROCESAMIENTO_RX:
     
     MOVF	    SERVO4_RX, W
     MOVWF	    SERVO4
-    BSF		    PORTD, 0
+    
     GOTO	    ESTADOS
 	    
     
