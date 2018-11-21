@@ -2,6 +2,7 @@
 
 #Use arduino's TestingSketch for testing purpose
 
+#Library imports
 import tkinter as tk
 import tkinter.ttk as ttk
 import serial
@@ -32,7 +33,13 @@ def refreshSerial(first):
         return(result)
     
     #data.reset_input_buffer()
+    
     while(result is None):
+        print(str(progressRecord.winfo_ismapped()) + "  " + str(data.in_waiting) + "  " + str(amountMissing.get()))
+        if(not(progressRecord.winfo_ismapped()) and not(data.in_waiting)):
+            return(0)
+        if(progressRecord.winfo_ismapped()):
+            print("Fetching")
         result = data.readline(1)
     result = ord(result)
     print(result)
@@ -42,7 +49,13 @@ class refreshFrame(tk.Frame):
     def __init__(self,master,*args,**kwargs):
         tk.Frame.__init__(self,master,*args,**kwargs)
 
-        self.first = True
+        global amountMissing
+        amountMissing = tk.IntVar()
+        amountMissing.set(0)
+
+        global first
+        first = tk.BooleanVar()
+        first.set(True)
 
         #Timer interval (us)
         self.TimerInterval = 1
@@ -53,36 +66,23 @@ class refreshFrame(tk.Frame):
     def refresh(self):
         
         if(recording.get()):
-            if(self.first):
-                print(refreshSerial(self.first))
-                self.first = False
+            print("Refreshing")
+            if(progressRecord.winfo_ismapped()):
+                progressbar.step(100/amountMissing.get())
+                print("Step")
+                if(not(data.in_waiting)):
+                    progressRecord.place_forget()
+                    print("Rid of preogress record")
+            if(first.get()):
+                print(refreshSerial(first.get()))
+                first.set(False)
             #Save incoming data to internal db
             file = open(rName.get() + ".txt","a")
-            file.write("%d\n" % (refreshSerial(self.first)))
+            in_num = refreshSerial(first.get())
+            if(in_num != 0):
+                file.write("%d\n" % (in_num))
             file.close()
 
-##        if(progressbar.winfo_ismapped()):
-##            if(len(instructions)):
-##            #Reading angle and conversion
-##                self.sending = int(instructions.pop(0))
-##                self.sending = chr(self.sending)
-##
-##                progressbar.step(100/amount.get())
-##            
-##                data.write(bytes(self.sending.encode()))
-##                if not(len(instructions)):
-##                    progressbar.place_forget()
-##                    button.config(state = "active", bg = "green", text = "Play")
-##                    recButton.config(state = "active", bg = "green", text = "Start Recording")
-##                    #send 1
-##                    self.sending = 0
-##                    self.sending = chr(self.sending)
-##
-##                    x = 1
-##                    while(x <= 5):
-##                        data.write(bytes(self.sending.encode()))
-##                        x += 1
-        
         # Now repeat call
         self.after(self.TimerInterval,self.refresh)
 
@@ -94,6 +94,12 @@ class leftFrame(tk.Frame):
         self.path = "Rec.png"    #Define image path
         self.background_image=tk.PhotoImage(file = self.path)   #Create variable with image
         self.lbl = tk.Label(self, image=self.background_image, width=50, height=10, bg=bgColor) #Initialize label with image
+
+        self.initRecord = tk.BooleanVar()
+        self.initRecord.set(False)
+
+        global progressRecord
+        progressRecord = ttk.Progressbar(self, maximum=100)
 
         global rName         #Name of current Routine
         rName = tk.StringVar()
@@ -121,6 +127,8 @@ class leftFrame(tk.Frame):
         Error.set("")   #Reset error's message
         if(self.name.get() != ""):
             if(not(recording.get())):
+                amountMissing.set(1)
+                print("Recording")
                 recording.set(True)     #Set that recording
                 button.config(state = "disabled", bg = "grey64", text = "Recording")
                 recButton['text']  ='Stop Recording'       #Change button's properties
@@ -135,30 +143,50 @@ class leftFrame(tk.Frame):
                 self.sending = chr(self.sending)
             
                 data.write(bytes(self.sending.encode()))
+
+                while(not(data.in_waiting)):
+                    print("waiting")
                 
                 #Timer interval (us)
                 self.TimerInterval = 500
                 #Calling timer function
                 self.receive()
+
+                self.initRecord.set(True)
+                print("Out first click")
             else:
-                
-                button.config(state = "active", bg = "green", text = "Play")
-                self.lbl.place_forget()     #Reset the recording feedback image
 
                 #send 1
                 self.sending = 0
                 self.sending = chr(self.sending)
-            
-                data.write(bytes(self.sending.encode()))
                 
-                recording.set(False)        #Set that not recording
-                recButton['text'] = 'Start Recording'  #Change button's properties
-                recButton['bg'] = 'green'
+                data.write(bytes(self.sending.encode()))
+                print("0 sent")
+                
+                progressRecord.place(x = 0, y = 0, width = 215)
+                print("progress Record Placed")
+                
+
+                amountMissing.set(data.in_waiting)
+                print(amountMissing.get())
+                
         else:   #If no name entered
             Error.set("Please, enter a valid name")
 
     def receive(self):
+###############################################################################
+        
         if(recording.get()):
+            if(not(progressRecord.winfo_ismapped()) and not(data.in_waiting) ):
+                print("stoping")
+                first.set(True)
+                amountMissing.set(0)
+                button.config(state = "active", bg = "green", text = "Play")
+                self.lbl.place_forget()     #Reset the recording feedback image
+                    
+                recording.set(False)        #Set that not recording
+                recButton['text'] = 'Start Recording'  #Change button's properties
+                recButton['bg'] = 'green'
             
             if(len(self.lbl.place_info())):
                 self.lbl.place_forget()
