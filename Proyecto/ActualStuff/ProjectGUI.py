@@ -51,10 +51,10 @@ def parametrization(list1, list2):
 ####
 ##    for x in range(18):
 ##        returningList.pop(0)
+    counter = 5
+    for x in range(1, counter - 1, 1):
+        returningList.append([ round(list3[0]*(x/counter) + list1[0], 0), round(list3[1]*(x/counter) + list1[1], 0) , round(list3[2]*(x/counter) + list1[2], 0), round(list3[3]*(x/counter) + list1[3], 0) ])
 
-    returningList.append([ round(list3[0]*(1/4) + list1[0], 0), round(list3[1]*(1/4) + list1[1], 0) , round(list3[2]*(1/4) + list1[2], 0), round(list3[3]*(1/4) + list1[3], 0) ])
-    returningList.append([ round(list3[0]*(2/4) + list1[0], 0), round(list3[1]*(2/4) + list1[1], 0) , round(list3[2]*(2/4) + list1[2], 0), round(list3[3]*(2/4) + list1[3], 0) ])
-    returningList.append([ round(list3[0]*(3/4) + list1[0], 0), round(list3[1]*(3/4) + list1[1], 0) , round(list3[2]*(3/4) + list1[2], 0), round(list3[3]*(3/4) + list1[3], 0) ])
     return(returningList)
 
 class refreshFrame(tk.Frame):
@@ -204,6 +204,7 @@ class leftFrame(tk.Frame):
                 #Calling timer function
                 self.receive()
             else:
+                print(data.in_waiting)
                 initRecord.set(False)
                 #send 0 to PIC
                 self.sending = 0
@@ -321,72 +322,72 @@ class rightFrame(tk.Frame):
 
     def refresh(self):
 
-        if(progressbar.winfo_ismapped()):
-            if(len(instructions)):  #If there are still instructions
-
-##                #Select first value in instructions
-##                self.sending = int(instructions.pop(0))
-##                self.sending = chr(self.sending)    #Convert to char
+##        if(progressbar.winfo_ismapped()):
+##            if(len(instructions)):  #If there are still instructions
 ##
-                progressbar.step(400/amount.get())  #Make a step on progressbar
-##            
-##                data.write(bytes(self.sending.encode()))    #Send instruction
-
-                p1 = []
-                p2 = []
-                for x in range(4):
-                    p1.append(instructions.pop(0))
-
-                if(len(instructions)):
-                    for x in range(4):
-                        p2.append(instructions[x])
-
-                    inst = parametrization(p1, p2)
-                    
-                    if(len(p1)):
-                        for y in range(4):
-                            self.sending = int(p1.pop(0))
-                            self.sending = chr(self.sending)    #Convert to char
-                        
-                            data.write(bytes(self.sending.encode()))    #Send instruction
-
-                            print(bytes(self.sending.encode()))
-                        
-                    for x in range(len(inst)):
-                        subInst = inst.pop(0)
-                        for y in range(4):
-                            self.sending = int(subInst.pop(0))
-                            self.sending = chr(self.sending)    #Convert to char
-                        
-                            data.write(bytes(self.sending.encode()))    #Send instruction
-
-                            print(bytes(self.sending.encode()))
-
-                        if(len(p2)):
-
-                            for y in range(4):
-                                self.sending = int(p2.pop(0))
-                                self.sending = chr(self.sending)    #Convert to char
-                            
-                                data.write(bytes(self.sending.encode()))    #Send instruction
-
-                                print(bytes(self.sending.encode()))
-                    
-
-                print(len(instructions))
-                
-                if not(len(instructions)):  #If there are no instructions left
-                    progressbar.place_forget()  #Removes the progress bar
-                    button.config(state = "active", bg = "green", text = "Play")    #Reenables play button
-                    recButton.config(state = "active", bg = "green", text = "Start Recording")  #Reenables recording button
-
-                    self.sending = 0
-                    self.sending = chr(self.sending)
-
-                    x = 1
-                    while(x <= 5):  #Sends 0 to PIC 4 times to finish the routine
-                        data.write(bytes(self.sending.encode()))
-                        x += 1
+####                #Select first value in instructions
+####                self.sending = int(instructions.pop(0))
+####                self.sending = chr(self.sending)    #Convert to char
+####
+##                progressbar.step(400/amount.get())  #Make a step on progressbar
+####            
+####                data.write(bytes(self.sending.encode()))    #Send instruction
+##
+##                p1 = []
+##                p2 = []
+##                for x in range(4):
+##                    p1.append(instructions.pop(0))
+##
+##                if(len(instructions)):
+##                    for x in range(4):
+##                        p2.append(instructions[x])
+##
+##                    inst = parametrization(p1, p2)
+##                    
+##                    if(len(p1)):
+##                        for y in range(4):
+##                            self.sending = int(p1.pop(0))
+##                            self.sending = chr(self.sending)    #Convert to char
+##                        
+##                            data.write(bytes(self.sending.encode()))    #Send instruction
+##
+##                            print(bytes(self.sending.encode()))
+##                        
+##                    for x in range(len(inst)):
+##                        subInst = inst.pop(0)
+##                        for y in range(4):
+##                            self.sending = int(subInst.pop(0))
+##                            self.sending = chr(self.sending)    #Convert to char
+##                        
+##                            data.write(bytes(self.sending.encode()))    #Send instruction
+##
+##                            print(bytes(self.sending.encode()))
+##
+##                        if(len(p2)):
+##
+##                            for y in range(4):
+##                                self.sending = int(p2.pop(0))
+##                                self.sending = chr(self.sending)    #Convert to char
+##                            
+##                                data.write(bytes(self.sending.encode()))    #Send instruction
+##
+##                                print(bytes(self.sending.encode()))
+##                    
+##
+##                print(len(instructions))
+##                
+##                if not(len(instructions)):  #If there are no instructions left
+##                    progressbar.place_forget()  #Removes the progress bar
+##                    button.config(state = "active", bg = "green", text = "Play")    #Reenables play button
+##                    recButton.config(state = "active", bg = "green", text = "Start Recording")  #Reenables recording button
+##
+##                    self.sending = 0
+##                    self.sending = chr(self.sending)
+##
+##                    x = 1
+##                    while(x <= 5):  #Sends 0 to PIC 4 times to finish the routine
+##                        data.write(bytes(self.sending.encode()))
+##                        x += 1
         
         # Now repeat call
         self.after(self.TimerInterval,self.refresh)
@@ -419,6 +420,114 @@ class App(tk.Tk):
         Error = tk.StringVar()
         tk.Label(self, textvariable = Error, font=("MS Serif", 10), bg=bgColor, fg="black", borderwidth = 5).place(x = 0, y = 350, height = 50, width = 300)
         
-        self.mainloop()
+        while True:
+
+        
+            if(recording.get() and initRecord.get()):    #If recording
+    ##            if(progressRecord.winfo_ismapped()):    #If processing progressbar is displayed
+    ##                progressRecord.step(100/amountMissing.get())   #make a step each byte received
+    ##                if(not(data.in_waiting)):   #When no data left
+    ##                    progressRecord.place_forget()   #Remove processing progress bar
+                        ######add processing message
+
+    ##            print(self.count)
+    ##            self.count += 1
+    ##            print("ProgressRecord: " + str(not(progressRecord.winfo_ismapped())))
+    ##            print("Buffer: " + str(not(data.in_waiting)))
+    ##            print("ProgressBar: " + str(progressbar.winfo_ismapped()))
+    ##            print("Recording: "+ str(recording.get()))
+
+                result1 = None
+                while(1):
+                    result1 = None
+                    while(result1 is None):
+                        result1 = data.readline(1)
+                    result1 = ord(result1)
+                    if(result1 == 1):
+                        break
+
+                for x in range(4):
+                    #Save incoming data to internal db
+                    file = open(rName.get() + ".txt","a")
+                    in_num = refreshSerial(first.get())
+                    if(in_num != 0):    #If it's not the first byte
+                        
+                        file.write("%d\n" % (in_num))
+                    print("Received " + str(in_num))
+                    if(first.get()):
+                        first.set(False)    #Set var to false
+                    file.close()
+
+            #data.reset_input_buffer()
+
+            
+            if(progressbar.winfo_ismapped()):
+                if(len(instructions)):  #If there are still instructions
+                    time.sleep(0.001)
+
+    ##                #Select first value in instructions
+##                    self.sending = int(instructions.pop(0))
+##                    self.sending = chr(self.sending)    #Convert to char
+    ##
+                    progressbar.step(400/amount.get())  #Make a step on progressbar
+    ##            
+##                    data.write(bytes(self.sending.encode()))    #Send instruction
+
+                    p1 = []
+                    p2 = []
+                    for x in range(4):
+                        p1.append(instructions.pop(0))
+
+                    if(len(instructions)):
+                        for x in range(4):
+                            p2.append(instructions[x])
+
+                        inst = parametrization(p1, p2)
+                        
+                        if(len(p1)):
+                            for y in range(4):
+                                self.sending = int(p1.pop(0))
+                                self.sending = chr(self.sending)    #Convert to char
+                            
+                                data.write(bytes(self.sending.encode()))    #Send instruction
+
+                                print(bytes(self.sending.encode()))
+                            
+                        for x in range(len(inst)):
+                            subInst = inst.pop(0)
+                            for y in range(4):
+                                self.sending = int(subInst.pop(0))
+                                self.sending = chr(self.sending)    #Convert to char
+                            
+                                data.write(bytes(self.sending.encode()))    #Send instruction
+
+                                print(bytes(self.sending.encode()))
+
+                            if(len(p2)):
+
+                                for y in range(4):
+                                    self.sending = int(p2.pop(0))
+                                    self.sending = chr(self.sending)    #Convert to char
+                                
+                                    data.write(bytes(self.sending.encode()))    #Send instruction
+
+                                    print(bytes(self.sending.encode()))
+                        
+
+                    print(len(instructions))
+                    
+                    if not(len(instructions)):  #If there are no instructions left
+                        progressbar.place_forget()  #Removes the progress bar
+                        button.config(state = "active", bg = "green", text = "Play")    #Reenables play button
+                        recButton.config(state = "active", bg = "green", text = "Start Recording")  #Reenables recording button
+
+                        self.sending = 0
+                        self.sending = chr(self.sending)
+
+                        x = 1
+                        while(x <= 5):  #Sends 0 to PIC 4 times to finish the routine
+                            data.write(bytes(self.sending.encode()))
+                            x += 1
+            self.update()
 
 App()
