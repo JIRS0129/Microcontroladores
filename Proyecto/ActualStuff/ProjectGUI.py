@@ -28,24 +28,34 @@ bgColor = "cyan"
 
 def refreshSerial(first):
     result = None   #Receiving data as none
-    if(first):      #If first byte
-        while(1):
-            while(result is None):  #wait for the 1
-                result = data.readline(1)
-            result = ord(result)
-            if(result == 1):
-                print("Found 1")
-                return(0)
     
     #data.reset_input_buffer()
     
     while(result is None):  #While there's nothing on the serial buffer
-        if(not(progressRecord.winfo_ismapped()) and not(data.in_waiting)):  #If processing progress bar not on window and no data waiting
-            return(0)
+##        if(not(progressRecord.winfo_ismapped()) and not(data.in_waiting)):  #If processing progress bar not on window and no data waiting
+##            return(0)
         result = data.readline(1)   #Read a byte from buffer
     result = ord(result)    #Convert incoming byte to int
 #TEST
     return(result)  #Return int
+
+def parametrization(list1, list2):
+
+    list3 = [list2[0] - list1[0], list2[1] - list1[1], list2[2] - list1[2], list2[3] - list1[3]]
+    returningList = []
+##    for x in range(25, 1, -1):
+##        returningList.append([ round(list3[0]/x + list1[0], 0), round(list3[1]/x + list1[1], 0) , round(list3[2]/x + list1[2], 0), round(list3[3]/x + list1[3], 0) ])
+##
+##    for y in range(1, 25, 1):
+##        returningList.append([ round(list3[0]*(1-1/(2*y)) + list1[0], 0), round(list3[1]*(1-1/(2*y)) + list1[1], 0) , round(list3[2]*(1-1/(2*y)) + list1[2], 0), round(list3[3]*(1-1/(2*y)) + list1[3], 0) ])
+####
+##    for x in range(18):
+##        returningList.pop(0)
+
+    returningList.append([ round(list3[0]*(1/4) + list1[0], 0), round(list3[1]*(1/4) + list1[1], 0) , round(list3[2]*(1/4) + list1[2], 0), round(list3[3]*(1/4) + list1[3], 0) ])
+    returningList.append([ round(list3[0]*(2/4) + list1[0], 0), round(list3[1]*(2/4) + list1[1], 0) , round(list3[2]*(2/4) + list1[2], 0), round(list3[3]*(2/4) + list1[3], 0) ])
+    returningList.append([ round(list3[0]*(3/4) + list1[0], 0), round(list3[1]*(3/4) + list1[1], 0) , round(list3[2]*(3/4) + list1[2], 0), round(list3[3]*(3/4) + list1[3], 0) ])
+    return(returningList)
 
 class refreshFrame(tk.Frame):
     def __init__(self,master,*args,**kwargs):
@@ -55,6 +65,8 @@ class refreshFrame(tk.Frame):
         global amountMissing
         amountMissing = tk.IntVar()
         amountMissing.set(0)
+
+##        self.count = 0
 
         #Var for receiving the initial OK from PIC while recording (1)
         global first
@@ -69,23 +81,42 @@ class refreshFrame(tk.Frame):
         
     def refresh(self):
         
-        if(recording.get()):    #If recording
-            if(progressRecord.winfo_ismapped()):    #If processing progressbar is displayed
-                progressRecord.step(100/amountMissing.get())   #make a step each byte received
-                if(not(data.in_waiting)):   #When no data left
-                    progressRecord.place_forget()   #Remove processing progress bar
+        if(recording.get() and initRecord.get()):    #If recording
+##            if(progressRecord.winfo_ismapped()):    #If processing progressbar is displayed
+##                progressRecord.step(100/amountMissing.get())   #make a step each byte received
+##                if(not(data.in_waiting)):   #When no data left
+##                    progressRecord.place_forget()   #Remove processing progress bar
                     ######add processing message
-            
-            #Save incoming data to internal db
-            file = open(rName.get() + ".txt","a")
-            in_num = refreshSerial(first.get())
-            if(in_num != 0):    #If it's not the first byte
-                
-                file.write("%d\n" % (in_num))
-            print("Received " + str(in_num))
-            if(first.get()):
-                first.set(False)    #Set var to false
-            file.close()
+
+##            print(self.count)
+##            self.count += 1
+##            print("ProgressRecord: " + str(not(progressRecord.winfo_ismapped())))
+##            print("Buffer: " + str(not(data.in_waiting)))
+##            print("ProgressBar: " + str(progressbar.winfo_ismapped()))
+##            print("Recording: "+ str(recording.get()))
+
+            result1 = None
+            while(1):
+                result1 = None
+                while(result1 is None):
+                    result1 = data.readline(1)
+                result1 = ord(result1)
+                if(result1 == 1):
+                    break
+
+            for x in range(4):
+                #Save incoming data to internal db
+                file = open(rName.get() + ".txt","a")
+                in_num = refreshSerial(first.get())
+                if(in_num != 0):    #If it's not the first byte
+                    
+                    file.write("%d\n" % (in_num))
+                print("Received " + str(in_num))
+                if(first.get()):
+                    first.set(False)    #Set var to false
+                file.close()
+
+            data.reset_input_buffer()
 
         # Now repeat call
         self.after(self.TimerInterval,self.refresh)
@@ -100,8 +131,9 @@ class leftFrame(tk.Frame):
         self.lbl = tk.Label(self, image=self.background_image, width=50, height=10, bg=bgColor) #Initialize label with image
 
 #TEST
-        self.initRecord = tk.BooleanVar()
-        self.initRecord.set(False)
+        global initRecord
+        initRecord = tk.BooleanVar()
+        initRecord.set(False)
 
         #Progress bar for processing the recording
         global progressRecord
@@ -162,17 +194,17 @@ class leftFrame(tk.Frame):
                 #Wait till receiving data
                 while(not(data.in_waiting)):
                     print("waiting")
-                
+
+#TEST
+                initRecord.set(True)
+                print("Out first click")
+
                 #Timer interval (ms)
                 self.TimerInterval = 500
                 #Calling timer function
                 self.receive()
-
-#TEST
-                self.initRecord.set(True)
-                print("Out first click")
             else:
-
+                initRecord.set(False)
                 #send 0 to PIC
                 self.sending = 0
                 self.sending = chr(self.sending)
@@ -180,7 +212,7 @@ class leftFrame(tk.Frame):
                 data.write(bytes(self.sending.encode()))
 
                 #Placement of processing progress bar 
-                progressRecord.place(x = 7, y = 120, width = 215)
+                #progressRecord.place(x = 7, y = 120, width = 215)
                 
 
                 amountMissing.set(data.in_waiting)
@@ -192,7 +224,7 @@ class leftFrame(tk.Frame):
 ###############################################################################
         
         if(recording.get()):    #if recording
-            if(not(progressRecord.winfo_ismapped()) and not(data.in_waiting) ): #processing progress bar is not placed and no data in buffer
+            if( not(initRecord.get())): #processing progress bar is not placed and no data in buffer
                 first.set(True)
                 amountMissing.set(0)
                 button.config(state = "active", bg = "green", text = "Play")    #Enable play button
@@ -223,7 +255,7 @@ class rightFrame(tk.Frame):
         tk.Frame.__init__(self,master,*args,**kwargs)
 
         #Interval at which data is sent to PIC
-        self.TimerInterval = 8
+        self.TimerInterval = 1
 
         #Global var for instruccions to send
         global instructions
@@ -276,11 +308,15 @@ class rightFrame(tk.Frame):
             #send 2 to PIC
             self.sending = 2
             self.sending = chr(self.sending)
+            print("Sending 2")
+            print(self.sending)
+            print(type(self.sending))
+            print("2 sent")
         
             data.write(bytes(self.sending.encode()))
             
             while(content.count('\n')):             #Place all values into an list
-                instructions.append(content[:content.find('\n')])
+                instructions.append(int(content[:content.find('\n')]))
                 content = content[content.find('\n') + 1:]
 
     def refresh(self):
@@ -288,13 +324,56 @@ class rightFrame(tk.Frame):
         if(progressbar.winfo_ismapped()):
             if(len(instructions)):  #If there are still instructions
 
-                #Select first value in instructions
-                self.sending = int(instructions.pop(0))
-                self.sending = chr(self.sending)    #Convert to char
+##                #Select first value in instructions
+##                self.sending = int(instructions.pop(0))
+##                self.sending = chr(self.sending)    #Convert to char
+##
+                progressbar.step(400/amount.get())  #Make a step on progressbar
+##            
+##                data.write(bytes(self.sending.encode()))    #Send instruction
 
-                progressbar.step(100/amount.get())  #Make a step on progressbar
-            
-                data.write(bytes(self.sending.encode()))    #Send instruction
+                p1 = []
+                p2 = []
+                for x in range(4):
+                    p1.append(instructions.pop(0))
+
+                if(len(instructions)):
+                    for x in range(4):
+                        p2.append(instructions[x])
+
+                    inst = parametrization(p1, p2)
+                    
+                    if(len(p1)):
+                        for y in range(4):
+                            self.sending = int(p1.pop(0))
+                            self.sending = chr(self.sending)    #Convert to char
+                        
+                            data.write(bytes(self.sending.encode()))    #Send instruction
+
+                            print(bytes(self.sending.encode()))
+                        
+                    for x in range(len(inst)):
+                        subInst = inst.pop(0)
+                        for y in range(4):
+                            self.sending = int(subInst.pop(0))
+                            self.sending = chr(self.sending)    #Convert to char
+                        
+                            data.write(bytes(self.sending.encode()))    #Send instruction
+
+                            print(bytes(self.sending.encode()))
+
+                        if(len(p2)):
+
+                            for y in range(4):
+                                self.sending = int(p2.pop(0))
+                                self.sending = chr(self.sending)    #Convert to char
+                            
+                                data.write(bytes(self.sending.encode()))    #Send instruction
+
+                                print(bytes(self.sending.encode()))
+                    
+
+                print(len(instructions))
                 
                 if not(len(instructions)):  #If there are no instructions left
                     progressbar.place_forget()  #Removes the progress bar
