@@ -24,102 +24,65 @@ while(1):
         print("Unable to open port")                    #Error if port error/timeout
 
 
-bgColor = "cyan"
+bgColor = "cyan"    #General window background color
 
-def refreshSerial(first):
+def refreshSerial():   #Returns a value from serial (int)
     result = None   #Receiving data as none
-    
-    #data.reset_input_buffer()
-    
+
     while(result is None):  #While there's nothing on the serial buffer
-##        if(not(progressRecord.winfo_ismapped()) and not(data.in_waiting)):  #If processing progress bar not on window and no data waiting
-##            return(0)
         result = data.readline(1)   #Read a byte from buffer
     result = ord(result)    #Convert incoming byte to int
-#TEST
     return(result)  #Return int
 
-def parametrization(list1, list2):
-
+def parametrization(list1, list2):  #Adds points in between two points of a straight line
+    #Direction vector (subtraction between both)
     list3 = [list2[0] - list1[0], list2[1] - list1[1], list2[2] - list1[2], list2[3] - list1[3]]
-    returningList = []
-##    for x in range(25, 1, -1):
-##        returningList.append([ round(list3[0]/x + list1[0], 0), round(list3[1]/x + list1[1], 0) , round(list3[2]/x + list1[2], 0), round(list3[3]/x + list1[3], 0) ])
-##
-##    for y in range(1, 25, 1):
-##        returningList.append([ round(list3[0]*(1-1/(2*y)) + list1[0], 0), round(list3[1]*(1-1/(2*y)) + list1[1], 0) , round(list3[2]*(1-1/(2*y)) + list1[2], 0), round(list3[3]*(1-1/(2*y)) + list1[3], 0) ])
-####
-##    for x in range(18):
-##        returningList.pop(0)
-    counter = 5
-    for x in range(1, counter - 1, 1):
+    returningList = []  #List that function returns
+    counter = 5         #Amount of points to be added
+    for x in range(1, counter - 1, 1):  #n times
+        #Add to list the formula: (t*r + r0) where r is the director vector and r0 is first point
         returningList.append([ round(list3[0]*(x/counter) + list1[0], 0), round(list3[1]*(x/counter) + list1[1], 0) , round(list3[2]*(x/counter) + list1[2], 0), round(list3[3]*(x/counter) + list1[3], 0) ])
 
     return(returningList)
 
-class refreshFrame(tk.Frame):
-    def __init__(self,master,*args,**kwargs):
-        tk.Frame.__init__(self,master,*args,**kwargs)
-
-        #Init of var for missing bytes in buffer
-        global amountMissing
-        amountMissing = tk.IntVar()
-        amountMissing.set(0)
-
-##        self.count = 0
-
-        #Var for receiving the initial OK from PIC while recording (1)
-        global first
-        first = tk.BooleanVar()
-        first.set(True)
-
-        #Timer interval (ms)
-        self.TimerInterval = 1
-        #Calling timer function
-        self.refresh()
-        
-        
-    def refresh(self):
-        
-        if(recording.get() and initRecord.get()):    #If recording
-##            if(progressRecord.winfo_ismapped()):    #If processing progressbar is displayed
-##                progressRecord.step(100/amountMissing.get())   #make a step each byte received
-##                if(not(data.in_waiting)):   #When no data left
-##                    progressRecord.place_forget()   #Remove processing progress bar
-                    ######add processing message
-
-##            print(self.count)
-##            self.count += 1
-##            print("ProgressRecord: " + str(not(progressRecord.winfo_ismapped())))
-##            print("Buffer: " + str(not(data.in_waiting)))
-##            print("ProgressBar: " + str(progressbar.winfo_ismapped()))
-##            print("Recording: "+ str(recording.get()))
-
-            result1 = None
-            while(1):
-                result1 = None
-                while(result1 is None):
-                    result1 = data.readline(1)
-                result1 = ord(result1)
-                if(result1 == 1):
-                    break
-
-            for x in range(4):
-                #Save incoming data to internal db
-                file = open(rName.get() + ".txt","a")
-                in_num = refreshSerial(first.get())
-                if(in_num != 0):    #If it's not the first byte
-                    
-                    file.write("%d\n" % (in_num))
-                print("Received " + str(in_num))
-                if(first.get()):
-                    first.set(False)    #Set var to false
-                file.close()
-
-            data.reset_input_buffer()
-
-        # Now repeat call
-        self.after(self.TimerInterval,self.refresh)
+##class refreshFrame(tk.Frame):
+##    def __init__(self,master,*args,**kwargs):
+##        tk.Frame.__init__(self,master,*args,**kwargs)
+##
+##        #Timer interval (ms)
+##        self.TimerInterval = 1
+##        #Calling timer function
+##        self.refresh()
+##
+##
+##    def refresh(self):
+##
+##        if(recording.get() and initRecord.get()):    #If recording
+##            result1 = None
+##            while(1):
+##                result1 = None
+##                while(result1 is None):
+##                    result1 = data.readline(1)
+##                result1 = ord(result1)
+##                if(result1 == 1):
+##                    break
+##
+##            for x in range(4):
+##                #Save incoming data to internal db
+##                file = open(rName.get() + ".txt","a")
+##                in_num = refreshSerial(first.get())
+##                if(in_num != 0):    #If it's not the first byte
+##
+##                    file.write("%d\n" % (in_num))
+##                print("Received " + str(in_num))
+##                if(first.get()):
+##                    first.set(False)    #Set var to false
+##                file.close()
+##
+##            data.reset_input_buffer()
+##
+##        # Now repeat call
+##        self.after(self.TimerInterval,self.refresh)
 
 class leftFrame(tk.Frame):
     def __init__(self,master,*args,**kwargs):
@@ -130,7 +93,6 @@ class leftFrame(tk.Frame):
         self.background_image=tk.PhotoImage(file = self.path)   #Create variable with image
         self.lbl = tk.Label(self, image=self.background_image, width=50, height=10, bg=bgColor) #Initialize label with image
 
-#TEST
         global initRecord
         initRecord = tk.BooleanVar()
         initRecord.set(False)
@@ -138,7 +100,7 @@ class leftFrame(tk.Frame):
         #Progress bar for processing the recording
         global progressRecord
         progressRecord = ttk.Progressbar(self, maximum=100)
-        
+
 
         global rName         #Name of current Routine
         rName = tk.StringVar()
@@ -149,21 +111,11 @@ class leftFrame(tk.Frame):
         recording = tk.BooleanVar()
         recording.set(False)
 
-        global processMessage
-        processMessage = tk.StringVar()
-        processMessage.set("")
-        tk.Label(self, textvariable = processMessage, font=("MS Serif", 10), bg=bgColor, fg="black").place(x = 72, y = 92)
-        
-
-#TEST
-        self.count = tk.IntVar()
-        self.count.set(1)
-
         self.config(bg=bgColor, bd=2, relief="solid")   #Add aesthetics to frame
 
         #Label above text input
         tk.Label(self, text = "Routine name", font=("MS Serif", 10), bg=bgColor, fg="black").place(x = 40, y = 25)
-        
+
         self.name = tk.StringVar()  #Var for the inputbox
         tk.Entry(self, textvariable = self.name).place(x = 40, y = 45)  #inputbox creation and placement
 
@@ -175,9 +127,8 @@ class leftFrame(tk.Frame):
         Error.set("")   #Reset error's message
         if(self.name.get() != ""):      #If there's a name on inputbox
             if(not(recording.get())):   #If recording
-                amountMissing.set(1)    #amount missing on serial set to 1
                 recording.set(True)     #Set that recording
-                button.config(state = "disabled", bg = "grey64", text = "Recording")    #Disable the play button 
+                button.config(state = "disabled", bg = "grey64", text = "Recording")    #Disable the play button
                 recButton['text']  ='Stop Recording'       #Change button's properties
                 recButton['bg'] = 'red'
                 rName.set(self.name.get())            #Change var's value
@@ -188,64 +139,48 @@ class leftFrame(tk.Frame):
                 #send 1 to PIC
                 self.sending = 1
                 self.sending = chr(self.sending)
-            
+
                 data.write(bytes(self.sending.encode()))
-                
+
                 #Wait till receiving data
                 while(not(data.in_waiting)):
                     print("waiting")
 
-#TEST
                 initRecord.set(True)
-                print("Out first click")
 
                 #Timer interval (ms)
                 self.TimerInterval = 500
                 #Calling timer function
                 self.receive()
             else:
-                print(data.in_waiting)
                 initRecord.set(False)
+                self.lbl.place_forget()
                 #send 0 to PIC
                 self.sending = 0
                 self.sending = chr(self.sending)
-                
+
                 data.write(bytes(self.sending.encode()))
 
-                #Placement of processing progress bar 
-                #progressRecord.place(x = 7, y = 120, width = 215)
-                
-
-                amountMissing.set(data.in_waiting)
-                
         else:   #If no name entered
             Error.set("Please, enter a valid name")
 
     def receive(self):
-###############################################################################
-        
+
         if(recording.get()):    #if recording
             if( not(initRecord.get())): #processing progress bar is not placed and no data in buffer
                 first.set(True)
-                amountMissing.set(0)
                 button.config(state = "active", bg = "green", text = "Play")    #Enable play button
                 self.lbl.place_forget()     #Reset the recording feedback image
-                    
+
                 recording.set(False)        #Set that not recording
                 recButton['text'] = 'Start Recording'  #Change button's properties
                 recButton['bg'] = 'green'
 
-            
+
             if(len(self.lbl.place_info())):#If image on window
                 self.lbl.place_forget()
             else:   #If image not on window
                 self.lbl.place(x = 192, y = 0, width=40, height=20)
-
-        #If processing, toggle message
-        if(progressRecord.winfo_ismapped()):
-            processMessage.set("Processing")
-        else:
-            processMessage.set("")
 
         # Now repeat call
         self.after(self.TimerInterval,self.receive)
@@ -268,7 +203,7 @@ class rightFrame(tk.Frame):
         amount.set(0)
 
         self.config(bg=bgColor, bd=2, relief="solid")   #Add BG color to frame
-        
+
         tk.Label(self, text = "Select routine", font=("MS Serif", 10), bg=bgColor, fg="black").place(x = 40, y = 25)    #creation and placemento of label
 
         self.vals  = [""]       #Var for routines on folder
@@ -278,14 +213,11 @@ class rightFrame(tk.Frame):
         #init of progress bar
         global progressbar
         progressbar = ttk.Progressbar(self, maximum=100)
-        
+
         #init an placement of play button
         global button
         button = tk.Button(self, text = "Play", command = self.play, font=("MS Serif", 13), bg="green", fg="white", width=10, height=2)
         button.place(x = 60, y = 150)
-
-        self.refresh()
-
 
     def update(self):   #when dropdown menu is pressed
         self.vals = [x for x in os.listdir() if 'txt' in x] #Select all archive names in which 'txt' appears
@@ -309,88 +241,13 @@ class rightFrame(tk.Frame):
             #send 2 to PIC
             self.sending = 2
             self.sending = chr(self.sending)
-            print("Sending 2")
-            print(self.sending)
-            print(type(self.sending))
-            print("2 sent")
-        
+
             data.write(bytes(self.sending.encode()))
-            
+
             while(content.count('\n')):             #Place all values into an list
                 instructions.append(int(content[:content.find('\n')]))
                 content = content[content.find('\n') + 1:]
 
-    def refresh(self):
-
-##        if(progressbar.winfo_ismapped()):
-##            if(len(instructions)):  #If there are still instructions
-##
-####                #Select first value in instructions
-####                self.sending = int(instructions.pop(0))
-####                self.sending = chr(self.sending)    #Convert to char
-####
-##                progressbar.step(400/amount.get())  #Make a step on progressbar
-####            
-####                data.write(bytes(self.sending.encode()))    #Send instruction
-##
-##                p1 = []
-##                p2 = []
-##                for x in range(4):
-##                    p1.append(instructions.pop(0))
-##
-##                if(len(instructions)):
-##                    for x in range(4):
-##                        p2.append(instructions[x])
-##
-##                    inst = parametrization(p1, p2)
-##                    
-##                    if(len(p1)):
-##                        for y in range(4):
-##                            self.sending = int(p1.pop(0))
-##                            self.sending = chr(self.sending)    #Convert to char
-##                        
-##                            data.write(bytes(self.sending.encode()))    #Send instruction
-##
-##                            print(bytes(self.sending.encode()))
-##                        
-##                    for x in range(len(inst)):
-##                        subInst = inst.pop(0)
-##                        for y in range(4):
-##                            self.sending = int(subInst.pop(0))
-##                            self.sending = chr(self.sending)    #Convert to char
-##                        
-##                            data.write(bytes(self.sending.encode()))    #Send instruction
-##
-##                            print(bytes(self.sending.encode()))
-##
-##                        if(len(p2)):
-##
-##                            for y in range(4):
-##                                self.sending = int(p2.pop(0))
-##                                self.sending = chr(self.sending)    #Convert to char
-##                            
-##                                data.write(bytes(self.sending.encode()))    #Send instruction
-##
-##                                print(bytes(self.sending.encode()))
-##                    
-##
-##                print(len(instructions))
-##                
-##                if not(len(instructions)):  #If there are no instructions left
-##                    progressbar.place_forget()  #Removes the progress bar
-##                    button.config(state = "active", bg = "green", text = "Play")    #Reenables play button
-##                    recButton.config(state = "active", bg = "green", text = "Start Recording")  #Reenables recording button
-##
-##                    self.sending = 0
-##                    self.sending = chr(self.sending)
-##
-##                    x = 1
-##                    while(x <= 5):  #Sends 0 to PIC 4 times to finish the routine
-##                        data.write(bytes(self.sending.encode()))
-##                        x += 1
-        
-        # Now repeat call
-        self.after(self.TimerInterval,self.refresh)
 
 class App(tk.Tk):
     def __init__(self):
@@ -409,33 +266,21 @@ class App(tk.Tk):
         # Frame placement
         leftFrame(self).place(x = 10, y = 100, height = 230, width = 240)
         rightFrame(self).place(x = 240, y = 100, height = 230, width = 240)
-        refreshFrame(self).place(x = 0, y = 0)
+##        refreshFrame(self).place(x = 0, y = 0)
 
         #Subtitle label
         tk.Label(self, text = "Record", font=("MS Serif", 12), bg=bgColor, fg="black").place(x = 50, y = 85)
         tk.Label(self, text = "Play", font=("MS Serif", 12), bg=bgColor, fg="black").place(x = 275, y = 85)
-        
+
         #Globar var to send error message
         global Error
         Error = tk.StringVar()
         tk.Label(self, textvariable = Error, font=("MS Serif", 10), bg=bgColor, fg="black", borderwidth = 5).place(x = 0, y = 350, height = 50, width = 300)
-        
+
         while True:
 
-        
-            if(recording.get() and initRecord.get()):    #If recording
-    ##            if(progressRecord.winfo_ismapped()):    #If processing progressbar is displayed
-    ##                progressRecord.step(100/amountMissing.get())   #make a step each byte received
-    ##                if(not(data.in_waiting)):   #When no data left
-    ##                    progressRecord.place_forget()   #Remove processing progress bar
-                        ######add processing message
 
-    ##            print(self.count)
-    ##            self.count += 1
-    ##            print("ProgressRecord: " + str(not(progressRecord.winfo_ismapped())))
-    ##            print("Buffer: " + str(not(data.in_waiting)))
-    ##            print("ProgressBar: " + str(progressbar.winfo_ismapped()))
-    ##            print("Recording: "+ str(recording.get()))
+            if(recording.get() and initRecord.get()):    #If recording
 
                 result1 = None
                 while(1):
@@ -451,71 +296,62 @@ class App(tk.Tk):
                     file = open(rName.get() + ".txt","a")
                     in_num = refreshSerial(first.get())
                     if(in_num != 0):    #If it's not the first byte
-                        
+
                         file.write("%d\n" % (in_num))
                     print("Received " + str(in_num))
                     if(first.get()):
                         first.set(False)    #Set var to false
                     file.close()
 
-            #data.reset_input_buffer()
-
-            
             if(progressbar.winfo_ismapped()):
                 if(len(instructions)):  #If there are still instructions
                     time.sleep(0.001)
 
-    ##                #Select first value in instructions
-##                    self.sending = int(instructions.pop(0))
-##                    self.sending = chr(self.sending)    #Convert to char
-    ##
                     progressbar.step(400/amount.get())  #Make a step on progressbar
-    ##            
-##                    data.write(bytes(self.sending.encode()))    #Send instruction
 
-                    p1 = []
-                    p2 = []
-                    for x in range(4):
-                        p1.append(instructions.pop(0))
+                    p1 = [] #Point 1 of line
+                    p2 = [] #Point 2 of line
+                    for x in range(4):  #Select and delete first 4 values of instructions
+                        p1.append(instructions.pop(0))  #Place them on p1
 
-                    if(len(instructions)):
-                        for x in range(4):
-                            p2.append(instructions[x])
+                    if(len(instructions)):  #If instructions left
+                        for x in range(4):  #Selecto first 4 vales of instructions
+                            p2.append(instructions[x])  #Place them o p2
 
-                        inst = parametrization(p1, p2)
-                        
-                        if(len(p1)):
+                        inst = parametrization(p1, p2)  #Get the filling values of the line
+
+                        if(len(p1)):    #If point 1 has stuff
                             for y in range(4):
-                                self.sending = int(p1.pop(0))
+                                self.sending = int(p1.pop(0))   #Select the first value
                                 self.sending = chr(self.sending)    #Convert to char
-                            
+
                                 data.write(bytes(self.sending.encode()))    #Send instruction
 
-                                print(bytes(self.sending.encode()))
-                            
-                        for x in range(len(inst)):
-                            subInst = inst.pop(0)
+                                print(bytes(self.sending.encode())) ###DEBUG
+
+                        for x in range(len(inst)): #Por every filling value
+                            subInst = inst.pop(0)   #Get the first point
                             for y in range(4):
-                                self.sending = int(subInst.pop(0))
+                                self.sending = int(subInst.pop(0))  #Select first value
                                 self.sending = chr(self.sending)    #Convert to char
-                            
+
                                 data.write(bytes(self.sending.encode()))    #Send instruction
 
-                                print(bytes(self.sending.encode()))
+                                print(bytes(self.sending.encode())) ###DEBUG
 
-                            if(len(p2)):
+                            if(len(p2)):        #If instructions left on point 2
 
                                 for y in range(4):
-                                    self.sending = int(p2.pop(0))
+                                    self.sending = int(p2.pop(0))   #Select first value
                                     self.sending = chr(self.sending)    #Convert to char
-                                
+
                                     data.write(bytes(self.sending.encode()))    #Send instruction
 
-                                    print(bytes(self.sending.encode()))
-                        
+                                    print(bytes(self.sending.encode())) ###DEBUG
+
 
                     print(len(instructions))
-                    
+
                     if not(len(instructions)):  #If there are no instructions left
                         progressbar.place_forget()  #Removes the progress bar
                         button.config(state = "active", bg = "green", text = "Play")    #Reenables play button
